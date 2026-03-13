@@ -1,7 +1,7 @@
 import streamlit as st
 import pickle
 import numpy as np
-from groq import Groq
+import requests
 
 # -----------------------------
 # Load model and encoders
@@ -26,29 +26,41 @@ model, drug_encoder, side_effect_encoder = load_resources()
 drug_options = list(drug_encoder.classes_)
 
 # -----------------------------
-# Groq client
-# -----------------------------
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-
-# -----------------------------
-# AI explanation
+# AI explanation function
 # -----------------------------
 def get_explanation(side_effect, language):
 
+    api_key = st.secrets["GROQ_API_KEY"]
+
+    prompt = f"Explain the medical side effect '{side_effect}' in one simple sentence in {language}."
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "llama3-8b-8192",
+        "messages": [
+            {"role": "user", "content": prompt}
+        ],
+        "max_tokens": 80
+    }
+
     try:
 
-        prompt = f"Explain the medical side effect '{side_effect}' in one short simple sentence in {language}."
+        response = requests.post(url, headers=headers, json=payload)
 
-        response = client.chat.completions.create(
-            model="llama3-8b-8192",
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+        data = response.json()
 
-        return response.choices[0].message.content.strip()
+        if "choices" in data:
+            return data["choices"][0]["message"]["content"]
 
-    except Exception as e:
+        return "Explanation not available."
+
+    except Exception:
         return "Explanation not available."
 
 
@@ -80,12 +92,11 @@ with st.sidebar:
     if "GROQ_API_KEY" in st.secrets:
         st.success("Groq API key detected — AI explanations enabled.")
     else:
-        st.warning("Groq API key not found.")
+        st.warning("Groq API key missing")
 
 
 # Layout
 col1, col2 = st.columns([1, 1])
-
 
 # Input
 with col1:
@@ -101,7 +112,6 @@ with col1:
         value=100,
         step=1
     )
-
 
 # Prediction
 with col2:

@@ -4,4 +4,3 @@ numpy
 scikit-learn
 xgboost
 requests
-groq>=0.9.0
