@@ -9,13 +9,14 @@ import os
 # -----------------------------
 @st.cache_resource
 def load_resources():
-    with open("src/trained_model.pkl", "rb") as f:
+
+    with open("trained_model.pkl", "rb") as f:
         model = pickle.load(f)
 
-    with open("src/drug_encoder.pkl", "rb") as f:
+    with open("drug_encoder.pkl", "rb") as f:
         drug_encoder = pickle.load(f)
 
-    with open("src/side_effect_encoder.pkl", "rb") as f:
+    with open("side_effect_encoder.pkl", "rb") as f:
         side_effect_encoder = pickle.load(f)
 
     return model, drug_encoder, side_effect_encoder
@@ -69,7 +70,7 @@ def get_explanation(side_effect, language):
 
 
 # -----------------------------
-# UI
+# Streamlit UI
 # -----------------------------
 st.set_page_config(
     page_title="ADR Predictor",
