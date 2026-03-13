@@ -10,13 +10,13 @@ import os
 @st.cache_resource
 def load_resources():
 
-    with open("trained_model.pkl", "rb") as f:
+    with open("src/trained_model.pkl", "rb") as f:
         model = pickle.load(f)
 
-    with open("drug_encoder.pkl", "rb") as f:
+    with open("src/drug_encoder.pkl", "rb") as f:
         drug_encoder = pickle.load(f)
 
-    with open("side_effect_encoder.pkl", "rb") as f:
+    with open("src/side_effect_encoder.pkl", "rb") as f:
         side_effect_encoder = pickle.load(f)
 
     return model, drug_encoder, side_effect_encoder
@@ -103,6 +103,7 @@ with st.sidebar:
 # Layout
 col1, col2 = st.columns([1, 1])
 
+
 # -----------------------------
 # Input
 # -----------------------------
@@ -119,6 +120,7 @@ with col1:
         value=100,
         step=1
     )
+
 
 # -----------------------------
 # Prediction
