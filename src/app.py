@@ -62,10 +62,19 @@ def get_explanation(side_effect, language):
     if not api_key:
         # Fallback explanation without API
         side_fallback = EXPLANATION_FALLBACK.get(side_effect, {})
-        return side_fallback.get(
-            language,
-            f"{side_effect} is a reported side effect for some medications."
-        )
+        if side_fallback:
+            return side_fallback.get(
+                language,
+                side_fallback.get('English')
+            )
+
+        # Generic fallback language template
+        generic_templates = {
+            "English": f"{side_effect} is a reported side effect for some medications.",
+            "Hindi": f"{side_effect} कुछ दवाओं के लिए एक रिपोर्ट किया गया दुष्प्रभाव है।",
+            "Marathi": f"{side_effect} काही औषधांशी संबंधित अहवालित दुष्परिणाम आहे."
+        }
+        return generic_templates.get(language, generic_templates['English'])
 
     prompt = f"Explain the medical side effect '{side_effect}' in one short sentence in {language}."
     url = "https://api.groq.com/v1/chat/completions"
@@ -102,9 +111,11 @@ with st.sidebar:
     language = st.selectbox("Explanation Language", ["English", "Hindi", "Marathi"])
     enable_explanations = st.checkbox("Enable AI Explanations", value=True)
 
-    if not os.getenv('GROQ_API_KEY'):
-        st.info(
-            "No Groq API key found — explanations use built-in fallback text. "
+    if os.getenv('GROQ_API_KEY'):
+        st.success("Groq API key detected — AI explanations are enabled.")
+    else:
+        st.warning(
+            "No Groq API key found — using built-in fallback explanations. "
             "To enable AI explanations, add a Groq key in Streamlit Secrets (Settings → Secrets) using key `GROQ_API_KEY`."
         )
 
