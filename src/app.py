@@ -107,8 +107,8 @@ def get_explanation(side_effect, language):
         "Content-Type": "application/json",
     }
 
-    # Groq currently supports two types of endpoints: chat completions and standard completions.
-    # We try chat first, then fall back to the standard completions endpoint if needed.
+    # Groq endpoint variants (some accounts use api.groq.com, others api.groq.ai).
+    # We try chat first, then fallback to standard completions.
     endpoints = [
         ("https://api.groq.com/v1/chat/completions", {
             "model": "llama-3.3-70b-versatile",
@@ -116,6 +116,16 @@ def get_explanation(side_effect, language):
             "max_tokens": 100,
         }),
         ("https://api.groq.com/v1/completions", {
+            "model": "llama-3.3-70b-versatile",
+            "prompt": prompt,
+            "max_tokens": 100,
+        }),
+        ("https://api.groq.ai/v1/chat/completions", {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 100,
+        }),
+        ("https://api.groq.ai/v1/completions", {
             "model": "llama-3.3-70b-versatile",
             "prompt": prompt,
             "max_tokens": 100,
@@ -145,8 +155,10 @@ def get_explanation(side_effect, language):
                     return content.strip()
 
             # Unexpected or missing content
-            last_error = "Unexpected response format from Groq API."
-        except Exception as e:
+            last_error = f"Unexpected response structure (status={r.status_code})"
+            if isinstance(data, dict) and "error" in data:
+                last_error += f": {data.get('error')}"
+        except requests.exceptions.RequestException as e:
             last_error = str(e)
 
     # If we get here, every endpoint attempt failed
