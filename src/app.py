@@ -29,6 +29,7 @@ EXPLANATION_FALLBACK = {
     "Headache": "Headache is pain in the head or neck area and can be triggered by many drugs.",
     "Fatigue": "Fatigue is a feeling of extreme tiredness and lack of energy.",
     "Dizziness": "Dizziness is a sensation of being unbalanced or lightheaded.",
+    "Drug screen positive": "A positive drug screen means a test may show the presence of certain substances, which can sometimes happen due to medications.",
 }
 
 
@@ -75,8 +76,12 @@ with st.sidebar:
     st.header("Settings")
     language = st.selectbox("Explanation Language", ["English", "Hindi", "Marathi"])
     enable_explanations = st.checkbox("Enable AI Explanations", value=True)
+
     if not os.getenv('GROQ_API_KEY'):
-        st.info("No Groq API key found — explanations will use local fallback text.")
+        st.info(
+            "No Groq API key found — explanations use built-in fallback text. "
+            "To enable AI explanations, add a Groq key in Streamlit Secrets (Settings → Secrets) using key `GROQ_API_KEY`."
+        )
 
 # Main content
 col1, col2 = st.columns([1, 1])
