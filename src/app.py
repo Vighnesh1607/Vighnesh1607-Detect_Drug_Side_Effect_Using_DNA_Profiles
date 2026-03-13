@@ -30,18 +30,18 @@ drug_options = list(drug_encoder.classes_)
 # Get Groq API key
 # -----------------------------
 def get_api_key():
-    return os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
+    return st.secrets.get("GROQ_API_KEY")
 
 
 # -----------------------------
-# AI explanation function
+# AI explanation
 # -----------------------------
 def get_explanation(side_effect, language):
 
     api_key = get_api_key()
 
     if not api_key:
-        return "Explanation not available."
+        return "Groq API key not found."
 
     prompt = f"Explain the medical side effect '{side_effect}' in one simple sentence in {language}."
 
@@ -57,16 +57,23 @@ def get_explanation(side_effect, language):
         "messages": [
             {"role": "user", "content": prompt}
         ],
+        "temperature": 0.3,
         "max_tokens": 80
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        data = response.json()
-        return data["choices"][0]["message"]["content"].strip()
 
-    except:
+        response = requests.post(url, headers=headers, json=payload)
+
+        data = response.json()
+
+        if "choices" in data:
+            return data["choices"][0]["message"]["content"].strip()
+
         return "Explanation not available."
+
+    except Exception as e:
+        return f"API error: {e}"
 
 
 # -----------------------------
@@ -95,18 +102,15 @@ with st.sidebar:
     )
 
     if get_api_key():
-        st.success("Groq API key detected — AI explanations enabled.")
+        st.success("Groq API key detected")
     else:
-        st.warning("Groq API key not found.")
+        st.warning("Groq API key missing")
 
 
 # Layout
 col1, col2 = st.columns([1, 1])
 
-
-# -----------------------------
 # Input
-# -----------------------------
 with col1:
 
     st.subheader("Input Parameters")
@@ -122,9 +126,7 @@ with col1:
     )
 
 
-# -----------------------------
 # Prediction
-# -----------------------------
 with col2:
 
     st.subheader("Prediction Results")
