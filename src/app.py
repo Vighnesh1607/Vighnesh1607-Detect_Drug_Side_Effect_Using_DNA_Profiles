@@ -117,10 +117,17 @@ def get_explanation(side_effect, language):
         r = requests.post(url, headers=headers, json=payload, timeout=30)
         r.raise_for_status()
         data = r.json()
-        return data["choices"][0]["message"]["content"].strip()
-    except Exception:
-        # If API fails, fall back using the same language-aware logic
+
+        # Ensure the response contains the expected structure
+        content = data.get("choices", [{}])[0].get("message", {}).get("content")
+        if content and isinstance(content, str):
+            return content.strip()
+
+        # Unexpected structure: fall back
         return _fallback_explanation(side_effect, language)
+    except Exception as e:
+        # If API fails, show a brief error footnote and fall back
+        return f"(AI explanation unavailable: {str(e)})\n" + _fallback_explanation(side_effect, language)
 
 # UI
 st.set_page_config(page_title="ADR Predictor", page_icon="💊", layout="wide")
