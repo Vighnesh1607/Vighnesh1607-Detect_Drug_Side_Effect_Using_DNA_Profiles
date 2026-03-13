@@ -44,7 +44,7 @@ def get_explanation(side_effect, language):
         }
 
         payload = {
-            "model": "llama3-8b-8192",
+            "model": "llama-3.1-8b-instant",
             "messages": [
                 {"role": "user", "content": prompt}
             ],
@@ -56,15 +56,13 @@ def get_explanation(side_effect, language):
 
         data = response.json()
 
-        # show API response for debugging
         if "choices" in data:
             return data["choices"][0]["message"]["content"]
 
-        return f"API Response Error: {data}"
+        return "Explanation not available."
 
-    except Exception as e:
-
-        return f"Error: {str(e)}"
+    except Exception:
+        return "Explanation not available."
 
 
 # -----------------------------
@@ -93,7 +91,7 @@ with st.sidebar:
     )
 
     if "GROQ_API_KEY" in st.secrets:
-        st.success("Groq API key detected")
+        st.success("Groq API key detected — AI explanations enabled.")
     else:
         st.error("Groq API key not found")
 
