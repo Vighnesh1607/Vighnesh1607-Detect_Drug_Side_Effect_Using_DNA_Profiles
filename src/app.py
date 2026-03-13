@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import pickle
 import numpy as np
-from groq import Groq
+import requests
 import os
 
 # Load model and encoders
@@ -25,17 +25,25 @@ drug_options = list(drug_encoder.classes_)
 def get_explanation(side_effect, language):
     api_key = os.getenv('GROQ_API_KEY')
     if not api_key:
-        return "API key not set. Please set GROQ_API_KEY environment variable."
-    
-    client = Groq(api_key=api_key)
+        return "Explanation unavailable (API key not set)."
+
     prompt = f"Explain the medical side effect '{side_effect}' in one short sentence in {language}."
+    url = "https://api.groq.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 100,
+    }
+
     try:
-        response = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile",  # Best model for accuracy
-            max_tokens=100
-        )
-        return response.choices[0].message.content.strip()
+        r = requests.post(url, headers=headers, json=payload, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
         return f"Explanation not available: {str(e)}"
 
@@ -49,8 +57,8 @@ with st.sidebar:
     st.header("Settings")
     language = st.selectbox("Explanation Language", ["English", "Hindi", "Marathi"])
     enable_explanations = st.checkbox("Enable AI Explanations", value=True)
-    if not os.getenv('GROQ_API_KEY'):
-        st.warning("GROQ_API_KEY environment variable not set. Please set it before running.")
+    if not os.getenv('GROQ_API_KEY') and enable_explanations:
+        st.info("AI explanations are disabled because the Groq API key is not configured.")
 
 # Main content
 col1, col2 = st.columns([1, 1])
@@ -64,10 +72,10 @@ with col2:
     st.subheader("Prediction Results")
     if st.button("🔍 Predict Side Effects", type="primary"):
         if enable_explanations and not os.getenv('GROQ_API_KEY'):
-            st.error("GROQ_API_KEY environment variable not set. Please set it and restart the app.")
-        else:
-            # Encode input
-            drug_encoded = drug_encoder.transform([drug_name])[0]
+            enable_explanations = False
+
+        # Encode input
+        drug_encoded = drug_encoder.transform([drug_name])[0]
 
             # Prepare input
             input_data = np.array([[drug_encoded, genetic_score]])
