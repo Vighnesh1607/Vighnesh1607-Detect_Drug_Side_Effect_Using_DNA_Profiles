@@ -24,12 +24,36 @@ drug_options = list(drug_encoder.classes_)
 # Function to get explanation from Groq
 # Basic fallback explanations for common side effects (used if no API key).
 EXPLANATION_FALLBACK = {
-    "Alopecia": "Alopecia is hair loss that can occur as a side effect of some medications.",
-    "Nausea": "Nausea is a feeling of sickness in the stomach that often comes before vomiting.",
-    "Headache": "Headache is pain in the head or neck area and can be triggered by many drugs.",
-    "Fatigue": "Fatigue is a feeling of extreme tiredness and lack of energy.",
-    "Dizziness": "Dizziness is a sensation of being unbalanced or lightheaded.",
-    "Drug screen positive": "A positive drug screen means a test may show the presence of certain substances, which can sometimes happen due to medications.",
+    "Alopecia": {
+        "English": "Alopecia is hair loss that can occur as a side effect of some medications.",
+        "Hindi": "एलोपीशिया दवाओं के कुछ दुष्प्रभावों के रूप में बालों का झड़ना है।",
+        "Marathi": "एलोपीशिया ही काही औषधांच्या दुष्परिणामांमुळे होणारी केस गळती आहे."
+    },
+    "Nausea": {
+        "English": "Nausea is a feeling of sickness in the stomach that often comes before vomiting.",
+        "Hindi": "मतली पेट में बेचैनी की भावना है जो अक्सर उल्टी से पहले होती है।",
+        "Marathi": "उलट्या येण्यापूर्वी उदरात अस्वस्थता ही मळमळ म्हणून ओळखली जाते."
+    },
+    "Headache": {
+        "English": "Headache is pain in the head or neck area and can be triggered by many drugs.",
+        "Hindi": "सिर दर्द सिर या गर्दन के क्षेत्र में दर्द है और कई दवाओं से हो सकता है।",
+        "Marathi": "डोकेदुखी म्हणजे डोक्‍यात किंवा मानेमध्ये वेदना आणि अनेक औषधांमुळे होऊ शकते."
+    },
+    "Fatigue": {
+        "English": "Fatigue is a feeling of extreme tiredness and lack of energy.",
+        "Hindi": "थकान अत्यधिक थकावट और ऊर्जा की कमी की भावना है।",
+        "Marathi": "थकवा ही तीव्र थकवाट आणि उर्जेची कमतरता आहे."
+    },
+    "Dizziness": {
+        "English": "Dizziness is a sensation of being unbalanced or lightheaded.",
+        "Hindi": "चक्कर आना एक असंतुलित या हल्का महसूस करने की भावना है।",
+        "Marathi": "चक्कर येणे म्हणजे असमाधानकारक किंवा सौम्य वाटण्याची भावना आहे."
+    },
+    "Drug screen positive": {
+        "English": "A positive drug screen means a test may show the presence of certain substances, which can sometimes happen due to medications.",
+        "Hindi": "एक सकारात्मक ड्रग स्क्रीन का मतलब है कि परीक्षण में कुछ पदार्थ मौजूद हो सकते हैं, जो कभी-कभी दवाओं के कारण होता है।",
+        "Marathi": "एक सकारात्मक औषध तपासणी म्हणजे काही पदार्थांचा शोध लागू शकतो, जे कधीकधी औषधांमुळे होते."
+    },
 }
 
 
@@ -37,8 +61,9 @@ def get_explanation(side_effect, language):
     api_key = os.getenv('GROQ_API_KEY')
     if not api_key:
         # Fallback explanation without API
-        return EXPLANATION_FALLBACK.get(
-            side_effect,
+        side_fallback = EXPLANATION_FALLBACK.get(side_effect, {})
+        return side_fallback.get(
+            language,
             f"{side_effect} is a reported side effect for some medications."
         )
 
