@@ -82,24 +82,24 @@ def get_api_key():
     return os.getenv('GROQ_API_KEY') or st.secrets.get('GROQ_API_KEY')
 
 
+def _fallback_explanation(side_effect, language):
+    side_fallback = EXPLANATION_FALLBACK.get(side_effect, {})
+    if side_fallback:
+        return side_fallback.get(language, side_fallback.get('English'))
+
+    # Generic fallback language template
+    generic_templates = {
+        "English": f"{side_effect} is a reported side effect for some medications.",
+        "Hindi": f"{side_effect} कुछ दवाओं के लिए एक रिपोर्ट किया गया दुष्प्रभाव है।",
+        "Marathi": f"{side_effect} काही औषधांशी संबंधित अहवालित दुष्परिणाम आहे."
+    }
+    return generic_templates.get(language, generic_templates['English'])
+
+
 def get_explanation(side_effect, language):
     api_key = get_api_key()
     if not api_key:
-        # Fallback explanation without API
-        side_fallback = EXPLANATION_FALLBACK.get(side_effect, {})
-        if side_fallback:
-            return side_fallback.get(
-                language,
-                side_fallback.get('English')
-            )
-
-        # Generic fallback language template
-        generic_templates = {
-            "English": f"{side_effect} is a reported side effect for some medications.",
-            "Hindi": f"{side_effect} कुछ दवाओं के लिए एक रिपोर्ट किया गया दुष्प्रभाव है।",
-            "Marathi": f"{side_effect} काही औषधांशी संबंधित अहवालित दुष्परिणाम आहे."
-        }
-        return generic_templates.get(language, generic_templates['English'])
+        return _fallback_explanation(side_effect, language)
 
     prompt = f"Explain the medical side effect '{side_effect}' in one short sentence in {language}."
     url = "https://api.groq.com/v1/chat/completions"
@@ -119,11 +119,8 @@ def get_explanation(side_effect, language):
         data = r.json()
         return data["choices"][0]["message"]["content"].strip()
     except Exception:
-        # If API fails, fall back to a basic generic explanation
-        return EXPLANATION_FALLBACK.get(
-            side_effect,
-            f"{side_effect} is a reported side effect for some medications."
-        )
+        # If API fails, fall back using the same language-aware logic
+        return _fallback_explanation(side_effect, language)
 
 # UI
 st.set_page_config(page_title="ADR Predictor", page_icon="💊", layout="wide")
