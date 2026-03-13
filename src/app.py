@@ -30,38 +30,41 @@ drug_options = list(drug_encoder.classes_)
 # -----------------------------
 def get_explanation(side_effect, language):
 
-    api_key = st.secrets["GROQ_API_KEY"]
-
-    prompt = f"Explain the medical side effect '{side_effect}' in one simple sentence in {language}."
-
-    url = "https://api.groq.com/openai/v1/chat/completions"
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "model": "llama3-8b-8192",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "max_tokens": 80
-    }
-
     try:
+
+        api_key = st.secrets["GROQ_API_KEY"]
+
+        url = "https://api.groq.com/openai/v1/chat/completions"
+
+        prompt = f"Explain the medical side effect '{side_effect}' in one simple sentence in {language}."
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": "llama3-8b-8192",
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.3,
+            "max_tokens": 80
+        }
 
         response = requests.post(url, headers=headers, json=payload)
 
         data = response.json()
 
+        # show API response for debugging
         if "choices" in data:
             return data["choices"][0]["message"]["content"]
 
-        return "Explanation not available."
+        return f"API Response Error: {data}"
 
-    except Exception:
-        return "Explanation not available."
+    except Exception as e:
+
+        return f"Error: {str(e)}"
 
 
 # -----------------------------
@@ -90,13 +93,14 @@ with st.sidebar:
     )
 
     if "GROQ_API_KEY" in st.secrets:
-        st.success("Groq API key detected — AI explanations enabled.")
+        st.success("Groq API key detected")
     else:
-        st.warning("Groq API key missing")
+        st.error("Groq API key not found")
 
 
 # Layout
 col1, col2 = st.columns([1, 1])
+
 
 # Input
 with col1:
@@ -112,6 +116,7 @@ with col1:
         value=100,
         step=1
     )
+
 
 # Prediction
 with col2:
