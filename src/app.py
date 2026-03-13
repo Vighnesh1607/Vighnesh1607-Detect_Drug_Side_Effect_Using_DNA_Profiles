@@ -102,32 +102,55 @@ def get_explanation(side_effect, language):
         return _fallback_explanation(side_effect, language)
 
     prompt = f"Explain the medical side effect '{side_effect}' in one short sentence in {language}."
-    url = "https://api.groq.com/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
-    payload = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 100,
-    }
 
-    try:
-        r = requests.post(url, headers=headers, json=payload, timeout=30)
-        r.raise_for_status()
-        data = r.json()
+    # Groq currently supports two types of endpoints: chat completions and standard completions.
+    # We try chat first, then fall back to the standard completions endpoint if needed.
+    endpoints = [
+        ("https://api.groq.com/v1/chat/completions", {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 100,
+        }),
+        ("https://api.groq.com/v1/completions", {
+            "model": "llama-3.3-70b-versatile",
+            "prompt": prompt,
+            "max_tokens": 100,
+        }),
+    ]
 
-        # Ensure the response contains the expected structure
-        content = data.get("choices", [{}])[0].get("message", {}).get("content")
-        if content and isinstance(content, str):
-            return content.strip()
+    last_error = None
+    for url, payload in endpoints:
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=30)
+            r.raise_for_status()
+            data = r.json()
 
-        # Unexpected structure: fall back
-        return _fallback_explanation(side_effect, language)
-    except Exception as e:
-        # If API fails, show a brief error footnote and fall back
-        return f"(AI explanation unavailable: {str(e)})\n" + _fallback_explanation(side_effect, language)
+            # Handle both possible response formats
+            if "choices" in data and isinstance(data["choices"], list) and data["choices"]:
+                choice = data["choices"][0]
+                # chat format
+                content = (
+                    choice.get("message", {}).get("content")
+                    if isinstance(choice.get("message"), dict)
+                    else None
+                )
+                # completions format
+                if not content:
+                    content = choice.get("text")
+                if content and isinstance(content, str):
+                    return content.strip()
+
+            # Unexpected or missing content
+            last_error = "Unexpected response format from Groq API."
+        except Exception as e:
+            last_error = str(e)
+
+    # If we get here, every endpoint attempt failed
+    return f"(AI explanation unavailable: {last_error})\n" + _fallback_explanation(side_effect, language)
 
 # UI
 st.set_page_config(page_title="ADR Predictor", page_icon="💊", layout="wide")
