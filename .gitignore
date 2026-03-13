@@ -30,6 +30,11 @@ Thumbs.db
 # Model artifacts
 src/*.pkl
 
+# Keep pre-trained model and encoders in repo for deployment
+!src/trained_model.pkl
+!src/drug_encoder.pkl
+!src/side_effect_encoder.pkl
+
 # Streamlit cache
 .streamlit/
 
