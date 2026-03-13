@@ -77,25 +77,25 @@ with col2:
         # Encode input
         drug_encoded = drug_encoder.transform([drug_name])[0]
 
-            # Prepare input
-            input_data = np.array([[drug_encoded, genetic_score]])
+        # Prepare input
+        input_data = np.array([[drug_encoded, genetic_score]])
 
-            # Get probabilities
-            proba = model.predict_proba(input_data)[0]
+        # Get probabilities
+        proba = model.predict_proba(input_data)[0]
 
-            # Get top 5 indices
-            top_indices = np.argsort(proba)[-5:][::-1]
+        # Get top 5 indices
+        top_indices = np.argsort(proba)[-5:][::-1]
 
-            # Decode to names
-            top_side_effects = side_effect_encoder.inverse_transform(top_indices)
+        # Decode to names
+        top_side_effects = side_effect_encoder.inverse_transform(top_indices)
 
-            # Display results
-            st.success(f"Top 5 predicted side effects for {drug_name} with genetic score {genetic_score}:")
-            
-            for i, effect in enumerate(top_side_effects, 1):
-                if enable_explanations:
-                    explanation = get_explanation(effect, language)
-                    st.markdown(f"**{i}. {effect}**  \n{explanation}")
-                else:
-                    st.markdown(f"**{i}. {effect}**")
-                st.divider()
+        # Display results
+        st.success(f"Top 5 predicted side effects for {drug_name} with genetic score {genetic_score}:")
+        
+        for i, effect in enumerate(top_side_effects, 1):
+            if enable_explanations:
+                explanation = get_explanation(effect, language)
+                st.markdown(f"**{i}. {effect}**  \n{explanation}")
+            else:
+                st.markdown(f"**{i}. {effect}**")
+            st.divider()
