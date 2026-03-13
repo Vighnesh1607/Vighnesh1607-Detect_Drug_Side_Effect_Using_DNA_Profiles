@@ -49,6 +49,26 @@ EXPLANATION_FALLBACK = {
         "Hindi": "चक्कर आना एक असंतुलित या हल्का महसूस करने की भावना है।",
         "Marathi": "चक्कर येणे म्हणजे असमाधानकारक किंवा सौम्य वाटण्याची भावना आहे."
     },
+    "Hyperhidrosis": {
+        "English": "Hyperhidrosis is excessive sweating which can be triggered by certain medications.",
+        "Hindi": "हाइपरहाइड्रोसिस अत्यधिक पसीना है जो कुछ दवाओं के कारण हो सकता है।",
+        "Marathi": "हायपरहायड्रोसिस म्हणजे जास्त प्रमाणात घाम येणे, जे काही औषधांमुळे होऊ शकते."
+    },
+    "Quadriparesis": {
+        "English": "Quadriparesis is weakness in all four limbs, which can sometimes occur with certain drugs.",
+        "Hindi": "क्वाड्रिपारेसिस सभी चार अंगों में कमजोरी है, जो कभी-कभी कुछ दवाओं के साथ हो सकती है।",
+        "Marathi": "क्वाड्रिपॅरेसिस हा सर्व चार अंगात कमजोरपणा आहे, जो काही औषधांमुळे होऊ शकतो."
+    },
+    "Asterixis": {
+        "English": "Asterixis is a flapping tremor of the hands that can appear with certain neurological side effects.",
+        "Hindi": "एस्टेरिक्सिस हाथों में एक फ्लैपिंग कंपन है जो कुछ न्यूरोलॉजिकल दुष्प्रभावों के साथ दिखाई दे सकता है।",
+        "Marathi": "एस्टेरिक्सिस म्हणजे हातातील फडफडणारा थरथरणा आहे जो काही न्यूरोलॉजिकल दुष्परिणामांसह दिसू शकतो."
+    },
+    "Dermatitis atopic": {
+        "English": "Atopic dermatitis is a chronic skin condition that can be worsened by some medications.",
+        "Hindi": "एटोपिक डर्मेटाइटिस एक पुरानी त्वचा की स्थिति है जिसे कुछ दवाएं बिगाड़ सकती हैं।",
+        "Marathi": "अॅटोपिक डर्माटायटिस ही एक दीर्घकालीन त्वचेची स्थिती आहे जी काही औषधांनी बिघडू शकते."
+    },
     "Drug screen positive": {
         "English": "A positive drug screen means a test may show the presence of certain substances, which can sometimes happen due to medications.",
         "Hindi": "एक सकारात्मक ड्रग स्क्रीन का मतलब है कि परीक्षण में कुछ पदार्थ मौजूद हो सकते हैं, जो कभी-कभी दवाओं के कारण होता है।",
@@ -57,8 +77,13 @@ EXPLANATION_FALLBACK = {
 }
 
 
+def get_api_key():
+    # Streamlit secrets are stored in st.secrets, not env vars, so check both.
+    return os.getenv('GROQ_API_KEY') or st.secrets.get('GROQ_API_KEY')
+
+
 def get_explanation(side_effect, language):
-    api_key = os.getenv('GROQ_API_KEY')
+    api_key = get_api_key()
     if not api_key:
         # Fallback explanation without API
         side_fallback = EXPLANATION_FALLBACK.get(side_effect, {})
@@ -111,7 +136,7 @@ with st.sidebar:
     language = st.selectbox("Explanation Language", ["English", "Hindi", "Marathi"])
     enable_explanations = st.checkbox("Enable AI Explanations", value=True)
 
-    if os.getenv('GROQ_API_KEY'):
+    if get_api_key():
         st.success("Groq API key detected — AI explanations are enabled.")
     else:
         st.warning(
