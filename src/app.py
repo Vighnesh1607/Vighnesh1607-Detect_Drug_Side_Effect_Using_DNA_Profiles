@@ -1,8 +1,7 @@
 import streamlit as st
 import pickle
 import numpy as np
-import requests
-import os
+from groq import Groq
 
 # -----------------------------
 # Load model and encoders
@@ -27,53 +26,30 @@ model, drug_encoder, side_effect_encoder = load_resources()
 drug_options = list(drug_encoder.classes_)
 
 # -----------------------------
-# Get Groq API key
+# Groq client
 # -----------------------------
-def get_api_key():
-    return st.secrets.get("GROQ_API_KEY")
-
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 # -----------------------------
 # AI explanation
 # -----------------------------
 def get_explanation(side_effect, language):
 
-    api_key = get_api_key()
-
-    if not api_key:
-        return "Groq API key not found."
-
-    prompt = f"Explain the medical side effect '{side_effect}' in one simple sentence in {language}."
-
-    url = "https://api.groq.com/openai/v1/chat/completions"
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "model": "llama3-8b-8192",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.3,
-        "max_tokens": 80
-    }
-
     try:
 
-        response = requests.post(url, headers=headers, json=payload)
+        prompt = f"Explain the medical side effect '{side_effect}' in one short simple sentence in {language}."
 
-        data = response.json()
+        response = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
 
-        if "choices" in data:
-            return data["choices"][0]["message"]["content"].strip()
-
-        return "Explanation not available."
+        return response.choices[0].message.content.strip()
 
     except Exception as e:
-        return f"API error: {e}"
+        return "Explanation not available."
 
 
 # -----------------------------
@@ -101,14 +77,15 @@ with st.sidebar:
         ["English", "Hindi", "Marathi"]
     )
 
-    if get_api_key():
-        st.success("Groq API key detected")
+    if "GROQ_API_KEY" in st.secrets:
+        st.success("Groq API key detected — AI explanations enabled.")
     else:
-        st.warning("Groq API key missing")
+        st.warning("Groq API key not found.")
 
 
 # Layout
 col1, col2 = st.columns([1, 1])
+
 
 # Input
 with col1:
