@@ -75,8 +75,8 @@ with st.sidebar:
     st.header("Settings")
     language = st.selectbox("Explanation Language", ["English", "Hindi", "Marathi"])
     enable_explanations = st.checkbox("Enable AI Explanations", value=True)
-    if not os.getenv('GROQ_API_KEY') and enable_explanations:
-        st.info("AI explanations are disabled because the Groq API key is not configured.")
+    if not os.getenv('GROQ_API_KEY'):
+        st.info("No Groq API key found — explanations will use local fallback text.")
 
 # Main content
 col1, col2 = st.columns([1, 1])
@@ -89,9 +89,6 @@ with col1:
 with col2:
     st.subheader("Prediction Results")
     if st.button("🔍 Predict Side Effects", type="primary"):
-        if enable_explanations and not os.getenv('GROQ_API_KEY'):
-            enable_explanations = False
-
         # Encode input
         drug_encoded = drug_encoder.transform([drug_name])[0]
 
