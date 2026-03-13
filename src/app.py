@@ -22,10 +22,24 @@ model, drug_encoder, side_effect_encoder = load_resources()
 drug_options = list(drug_encoder.classes_)
 
 # Function to get explanation from Groq
+# Basic fallback explanations for common side effects (used if no API key).
+EXPLANATION_FALLBACK = {
+    "Alopecia": "Alopecia is hair loss that can occur as a side effect of some medications.",
+    "Nausea": "Nausea is a feeling of sickness in the stomach that often comes before vomiting.",
+    "Headache": "Headache is pain in the head or neck area and can be triggered by many drugs.",
+    "Fatigue": "Fatigue is a feeling of extreme tiredness and lack of energy.",
+    "Dizziness": "Dizziness is a sensation of being unbalanced or lightheaded.",
+}
+
+
 def get_explanation(side_effect, language):
     api_key = os.getenv('GROQ_API_KEY')
     if not api_key:
-        return "Explanation unavailable (API key not set)."
+        # Fallback explanation without API
+        return EXPLANATION_FALLBACK.get(
+            side_effect,
+            f"{side_effect} is a reported side effect for some medications."
+        )
 
     prompt = f"Explain the medical side effect '{side_effect}' in one short sentence in {language}."
     url = "https://api.groq.com/v1/chat/completions"
@@ -44,8 +58,12 @@ def get_explanation(side_effect, language):
         r.raise_for_status()
         data = r.json()
         return data["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        return f"Explanation not available: {str(e)}"
+    except Exception:
+        # If API fails, fall back to a basic generic explanation
+        return EXPLANATION_FALLBACK.get(
+            side_effect,
+            f"{side_effect} is a reported side effect for some medications."
+        )
 
 # UI
 st.set_page_config(page_title="ADR Predictor", page_icon="💊", layout="wide")
