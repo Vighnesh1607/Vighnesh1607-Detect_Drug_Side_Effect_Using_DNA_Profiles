@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.env.*
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data files (large/generated)
+/data/
+/data/*
+!data/README.md
+
+# Model artifacts
+src/*.pkl
+
+# Streamlit cache
+.streamlit/
+
+# API keys / secrets
+.env
+*.env
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Ignore locally generated CSV output (if you want to keep a few, un-comment)
+# data/final/processed_for_training.csv
+# data/final/person_drug_side_effect_adr_labeled.csv
