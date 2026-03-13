@@ -107,8 +107,7 @@ def get_explanation(side_effect, language):
         "Content-Type": "application/json",
     }
 
-    # Groq endpoint variants (some accounts use api.groq.com, others api.groq.ai).
-    # We try chat first, then fallback to standard completions.
+    # Groq uses api.groq.com; keep it simple to avoid DNS issues in closed environments.
     endpoints = [
         ("https://api.groq.com/v1/chat/completions", {
             "model": "llama-3.3-70b-versatile",
@@ -116,16 +115,6 @@ def get_explanation(side_effect, language):
             "max_tokens": 100,
         }),
         ("https://api.groq.com/v1/completions", {
-            "model": "llama-3.3-70b-versatile",
-            "prompt": prompt,
-            "max_tokens": 100,
-        }),
-        ("https://api.groq.ai/v1/chat/completions", {
-            "model": "llama-3.3-70b-versatile",
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 100,
-        }),
-        ("https://api.groq.ai/v1/completions", {
             "model": "llama-3.3-70b-versatile",
             "prompt": prompt,
             "max_tokens": 100,
