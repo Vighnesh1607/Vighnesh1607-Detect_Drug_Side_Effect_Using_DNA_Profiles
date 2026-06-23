@@ -3,6 +3,8 @@ import pickle
 import numpy as np
 import requests
 
+from genetic_score_calc import calculate_genetic_score
+
 # -----------------------------
 # Load model and encoders
 # -----------------------------
@@ -80,6 +82,10 @@ st.markdown(
     "Predict potential side effects based on drug and genetic score with AI-powered explanations."
 )
 
+# Initialize session state for the auto-filled genetic score
+if "genetic_score_value" not in st.session_state:
+    st.session_state.genetic_score_value = 100
+
 # Sidebar
 with st.sidebar:
 
@@ -94,6 +100,31 @@ with st.sidebar:
         st.success("Groq API key detected — AI explanations enabled.")
     else:
         st.error("Groq API key not found")
+
+    st.divider()
+
+    # -----------------------------
+    # Extra feature: Genetic Score Calculator from gene CSV
+    # -----------------------------
+    st.header("🧬 Genetic Score Calculator")
+    st.caption("Upload a person's gene-level CSV to calculate their genetic score automatically.")
+
+    gene_file = st.file_uploader("Upload gene CSV", type=["csv"], key="gene_csv_uploader")
+
+    if gene_file is not None:
+        if st.button("Calculate Genetic Score"):
+
+            results, error = calculate_genetic_score(gene_file.read())
+
+            if error:
+                st.error(error)
+            else:
+                for r in results:
+                    st.write(f"Person **{r['person_id']}**: genetic_score = **{r['genetic_score']}**")
+
+                # Auto-fill the main panel input using the first person's score
+                st.session_state.genetic_score_value = int(round(results[0]["genetic_score"]))
+                st.success(f"Genetic Score field updated to {st.session_state.genetic_score_value}")
 
 
 # Layout
@@ -111,8 +142,9 @@ with col1:
         "Genetic Score",
         min_value=0,
         max_value=1000,
-        value=100,
-        step=1
+        value=st.session_state.genetic_score_value,
+        step=1,
+        key="genetic_score_input"
     )
 
 
